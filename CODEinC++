@@ -1,0 +1,120 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <cmath>
+#include <map>
+#include <list>
+
+class Rider {
+public:
+    std::string name;
+    double lat, lon;
+
+    Rider(std::string name, double lat, double lon) : name(name), lat(lat), lon(lon) {}
+};
+
+class Driver {
+public:
+    std::string name;
+    double lat, lon;
+    int rating;
+    bool is_available;
+
+    Driver(std::string name, double lat, double lon, int rating)
+        : name(name), lat(lat), lon(lon), rating(rating), is_available(true) {}
+};
+
+// Custom comparator for the priority queue to prioritize by distance
+class DriverComparator {
+public:
+    DriverComparator(double rider_lat, double rider_lon)
+        : rider_lat(rider_lat), rider_lon(rider_lon) {}
+
+    bool operator()(const Driver* a, const Driver* b) {
+        double dist_a = calculate_distance(a->lat, a->lon);
+        double dist_b = calculate_distance(b->lat, b->lon);
+        return dist_a > dist_b; // Min-heap based on distance
+    }
+
+private:
+    double rider_lat, rider_lon;
+    double calculate_distance(double driver_lat, double driver_lon) {
+        return std::sqrt(std::pow(driver_lat - rider_lat, 2) + std::pow(driver_lon - rider_lon, 2));
+    }
+};
+
+class RideSimulator {
+private:
+    std::vector<Driver> drivers;
+    std::queue<Rider> pending_riders;
+    std::map<std::string, std::list<std::string>> ride_history;
+
+public:
+    void addDriver(const Driver& driver) {
+        drivers.push_back(driver);
+    }
+
+    void requestRide(const Rider& rider) {
+        pending_riders.push(rider);
+        std::cout << "Ride requested by " << rider.name << ". Adding to queue." << std::endl;
+    }
+
+    void processRequests() {
+        while (!pending_riders.empty()) {
+            Rider current_rider = pending_riders.front();
+            pending_riders.pop();
+            
+            // Priority queue to find the nearest driver
+            std::priority_queue<Driver*, std::vector<Driver*>, DriverComparator> nearest_drivers(DriverComparator(current_rider.lat, current_rider.lon));
+
+            for (auto& driver : drivers) {
+                if (driver.is_available) {
+                    nearest_drivers.push(&driver);
+                }
+            }
+
+            if (!nearest_drivers.empty()) {
+                Driver* assigned_driver = nearest_drivers.top();
+                assigned_driver->is_available = false;
+                std::cout << "Assigned driver " << assigned_driver->name << " to " << current_rider.name << "." << std::endl;
+                
+                // Add to ride history
+                ride_history[current_rider.name].push_back(assigned_driver->name);
+                ride_history[assigned_driver->name].push_back(current_rider.name);
+            } else {
+                std::cout << "No available drivers for " << current_rider.name << ". Please try again later." << std::endl;
+            }
+        }
+    }
+
+    void displayRideHistory(const std::string& name) {
+        if (ride_history.count(name)) {
+            std::cout << "Ride history for " << name << ":" << std::endl;
+            for (const auto& history_item : ride_history[name]) {
+                std::cout << "- " << history_item << std::endl;
+            }
+        } else {
+            std::cout << "No ride history found for " << name << "." << std::endl;
+        }
+    }
+};
+
+int main() {
+    RideSimulator simulator;
+
+    simulator.addDriver(Driver("Alice", 10.0, 20.0, 5));
+    simulator.addDriver(Driver("Bob", 12.0, 22.0, 4));
+    simulator.addDriver(Driver("Charlie", 50.0, 50.0, 5));
+
+    simulator.requestRide(Rider("David", 11.0, 21.0));
+    simulator.requestRide(Rider("Eve", 49.0, 48.0));
+
+    simulator.processRequests();
+
+    std::cout << "\n--- Displaying Ride History ---" << std::endl;
+    simulator.displayRideHistory("David");
+    simulator.displayRideHistory("Eve");
+    simulator.displayRideHistory("Alice");
+    
+    return 0;
+}
