@@ -1,0 +1,7 @@
+Driver & Rider Management: Queues and priority queues efficiently manage both driver availability and rider requests.
+
+Intelligent Matching: The system prioritizes assigning the nearest available driver to a rider, minimizing wait times.
+
+Rating-Based Assignment: Drivers with higher ratings are given priority in the matching algorithm, ensuring quality service.
+
+History & Analytics: The system maintains a complete ride history for future analysis, including driver performance and rider behavior.
