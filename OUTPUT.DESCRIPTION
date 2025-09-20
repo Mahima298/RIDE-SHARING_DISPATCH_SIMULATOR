@@ -1,0 +1,6 @@
+
+The C++ code simulates a ride-sharing dispatch system. The program first sets up a few drivers at various locations with different ratings, and a few riders also at different locations.
+
+The core logic is within the requestRide function, which uses a min-priority queue (std::priority_queue). This data structure automatically sorts available drivers based on their distance from the requesting rider, ensuring the nearest one is always at the top.
+
+When a rider requests a ride, the simulator finds the closest available driver, assigns the ride, and then simulates the completion of that ride. Finally, the program demonstrates how to display the ride history for a specific driver, a key feature for maintaining records. The output will show which driver was assigned to each rider and their corresponding ride status.
